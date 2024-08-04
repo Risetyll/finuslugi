@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: server
+    environment:
+      ENVIRONMENT: dev
+      DB_HOSTNAME: postgres
+      DATABASE_URL: postgres://postgres:postgres@database:5432/school_materials?sslmode=disable
+      CERT_FILE: /app/api/certs/cert.crt
+      KEY_FILE: /app/api/certs/cert.key
+      SERVER_ADDR: :8443
+    ports:
+      - "8443:8443"
+    depends_on:
+      database:
+        condition: service_healthy
+  database:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: school_materials
+    ports: 
+      - "5431:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d school_materials"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+volumes:
+  db_data:
+
+      
