@@ -1,0 +1,15 @@
+version: '3'
+
+tasks:
+  certs:
+    cmds:
+      - mkdir -p api/certs
+      - openssl req -newkey rsa:2048 -nodes -keyout api/certs/cert.key -x509 -days 365 -out api/certs/cert.crt
+  build:
+    cmds:
+      - mkdir -p build/finuslugi
+      - go build -o build/finuslugi ./cmd/server
+  clean:
+    cmds:
+      - rm -rf build
+      - rm -rf api/certs
