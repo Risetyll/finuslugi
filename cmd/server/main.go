@@ -18,13 +18,13 @@ import (
 
 func setupRoutes(uc *usecase.DatabaseUsecase, logger *slog.Logger) *mux.Router {
 	mux := mux.NewRouter()
-	router := handlers.New(logger)
+	routes := handlers.New(logger)
 
-	mux.HandleFunc("/", router.GetRoutesInfoHandler()).Methods("GET")
-	mux.HandleFunc("/materials", router.CreateMaterialHandler(uc)).Methods("POST")
-	mux.HandleFunc("/materials/{id:[0-9]+}", router.GetMaterialByIdHandler(uc)).Methods("GET")
-	mux.HandleFunc("/materials", router.UpdateMaterialHandler(uc)).Methods("PUT")
-	mux.HandleFunc("/materials", router.GetMaterialsHandler(uc)).Methods("GET")
+	mux.HandleFunc("/", routes.GetRoutesInfoHandler()).Methods("GET")
+	mux.HandleFunc("/materials", routes.CreateMaterialHandler(uc)).Methods("POST")
+	mux.HandleFunc("/materials/{id:[0-9]+}", routes.GetMaterialByIdHandler(uc)).Methods("GET")
+	mux.HandleFunc("/materials", routes.UpdateMaterialHandler(uc)).Methods("PUT")
+	mux.HandleFunc("/materials", routes.GetMaterialsHandler(uc)).Methods("GET")
 
 	return mux
 }

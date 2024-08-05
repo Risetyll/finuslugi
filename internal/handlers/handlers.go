@@ -18,17 +18,17 @@ type RouteInfo struct {
 	Description string `json:"description"`
 }
 
-type Router struct {
+type Routes struct {
 	logger *slog.Logger
 }
 
-func New(logger *slog.Logger) *Router {
-	return &Router{
+func New(logger *slog.Logger) *Routes {
+	return &Routes{
 		logger: logger,
 	}
 }
 
-func (r *Router) GetRoutesInfoHandler() http.HandlerFunc {
+func (routes *Routes) GetRoutesInfoHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		routes := []RouteInfo{
 			{
@@ -60,15 +60,16 @@ func (r *Router) GetRoutesInfoHandler() http.HandlerFunc {
 	}
 }
 
-func (router *Router) CreateMaterialHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
+func (routes *Routes) CreateMaterialHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req requests.CreateMaterialRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
 		}
+		defer r.Body.Close()
 
-		router.logger.Debug("create request", req)
+		routes.logger.Debug("create request", req)
 
 		if err := uc.CreateMaterial(&req); err != nil {
 			http.Error(w, "Failed to create material", http.StatusInternalServerError)
@@ -78,7 +79,7 @@ func (router *Router) CreateMaterialHandler(uc *usecase.DatabaseUsecase) http.Ha
 	}
 }
 
-func (router *Router) GetMaterialByIdHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
+func (routes *Routes) GetMaterialByIdHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		uuidStr := vars["id"]
@@ -88,7 +89,9 @@ func (router *Router) GetMaterialByIdHandler(uc *usecase.DatabaseUsecase) http.H
 			return
 		}
 		req := requests.GetMaterialByIdRequest{UUID: uuid}
-		router.logger.Debug("get request", req)
+
+		routes.logger.Debug("get request", req)
+
 		material, err := uc.GetMaterialById(&req)
 		if err != nil {
 			http.Error(w, "Failed to get material", http.StatusInternalServerError)
@@ -104,15 +107,16 @@ func (router *Router) GetMaterialByIdHandler(uc *usecase.DatabaseUsecase) http.H
 	}
 }
 
-func (router *Router) UpdateMaterialHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
+func (routes *Routes) UpdateMaterialHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req requests.UpdateMaterialRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
 		}
+		defer r.Body.Close()
 
-		router.logger.Debug("update request", req)
+		routes.logger.Debug("update request", req)
 
 		if err := uc.UpdateMaterial(&req); err != nil {
 			http.Error(w, "Failed to update material", http.StatusInternalServerError)
@@ -122,7 +126,7 @@ func (router *Router) UpdateMaterialHandler(uc *usecase.DatabaseUsecase) http.Ha
 	}
 }
 
-func (router *Router) GetMaterialsHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
+func (routes *Routes) GetMaterialsHandler(uc *usecase.DatabaseUsecase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := &requests.GetMaterialsRequest{
 			Type:        r.URL.Query().Get("type"),
@@ -132,7 +136,7 @@ func (router *Router) GetMaterialsHandler(uc *usecase.DatabaseUsecase) http.Hand
 			CreatedTo:   parseTimeQueryParam(r.URL.Query().Get("created_to")),
 		}
 
-		router.logger.Debug("get request", req)
+		routes.logger.Debug("get request", req)
 
 		materials, err := uc.GetMaterials(req)
 		if err != nil {
